@@ -1,0 +1,73 @@
+.documents-editor {
+    display: grid;
+    gap: 9px
+}
+
+.document-card {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px;
+    border: 1px solid var(--admin-line);
+    border-radius: 4px;
+    background: #fbfcfa
+}
+
+.document-details {
+    display: grid;
+    gap: 3px;
+    min-width: 0
+}
+
+.document-details strong {
+    font-size: 12px
+}
+
+.document-details span {
+    color: var(--admin-muted);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.document-review {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: minmax(120px, .55fr) minmax(180px, 1fr) auto;
+    gap: 8px
+}
+
+.pill.rejected {
+    background: #fae8e9;
+    color: #9b2632
+}
+
+.document-unavailable {
+    grid-column: 1/-1;
+    margin: 0;
+    color: #8b4b18;
+    font-size: 12px
+}
+
+@media(max-width:760px) {
+    .document-card {
+        grid-template-columns: minmax(0, 1fr) auto
+    }
+
+    .document-review {
+        grid-template-columns: 1fr
+    }
+
+    .document-review .button {
+        width: 100%
+    }
+}
+
+.document-replace {
+    grid-column: 1/-1;
+    width: 100%;
+    color: var(--admin-muted);
+    font-size: 12px
+}

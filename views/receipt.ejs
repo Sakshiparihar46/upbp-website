@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>UPBA Receipt</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="wrap">
+            <h1>U.P. Boxing Association</h1>
+            <p>Registration receipt</p>
+        </div>
+    </header>
+    <main>
+        <div class="wrap">
+            <div class="steps"><span>1 Details</span><span>2 Payment</span><span class="on">3 Receipt</span></div>
+            <div class="card rc">
+                <h2>Payment successful</h2>
+                <dl>
+                    <dt>Receipt No</dt>
+                    <dd>
+                        <%= receipt.receipt_no %>
+                    </dd>
+                    <dt>Registration No</dt>
+                    <dd>
+                        <%= receipt.reg_no %>
+                    </dd>
+                    <dt>Name</dt>
+                    <dd>
+                        <%= receipt.title || '' %>
+                            <%= receipt.first_name %>
+                                <%= receipt.last_name %>
+                    </dd>
+                    <dt>Category</dt>
+                    <dd>
+                        <%= receipt.role %>
+                    </dd>
+                    <dt>Amount paid</dt>
+                    <dd>₹<%= receipt.amount %>
+                    </dd>
+                    <dt>Date</dt>
+                    <dd>
+                        <%= new Date(receipt.paid_at).toLocaleString('en-IN') %>
+                    </dd>
+                </dl>
+                <div class="noprint"><button class="btn" onclick="window.print()">Print receipt</button><a class="btn g"
+                        href="/">New registration</a></div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

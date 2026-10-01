@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UP Boxing Association - Registration</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <h1>U.P. Boxing Association</h1>
+  <p>Online registration for boxers, coaches and officials</p>
+  <div class="tabs">
+    <% Object.keys(roles).forEach(name => { %>
+      <a class="tab <%= name === role ? 'active' : '' %>" href="/?role=<%= encodeURIComponent(name) %>"><%= name %></a>
+    <% }) %>
+  </div>
+</div></header>
+<main><div class="wrap">
+  <div class="steps"><span class="on">1 Details</span><span>2 Payment</span><span>3 Receipt</span></div>
+  <form class="card" action="/register" method="POST" enctype="multipart/form-data" id="registrationForm" novalidate>
+    <input type="hidden" name="role" value="<%= role %>">
+    <input type="hidden" name="fields" id="fieldsJson">
+    <input type="hidden" name="edu" id="eduJson">
+    <input type="hidden" name="ach" id="achJson">
+    <h2><%= config.title %></h2>
+    <p class="hint">Fields marked <i>*</i> are required.</p>
+    <% if (error) { %><div class="msg" role="alert"><%= error %></div><% } %>
+
+    <h3>Photo & Registration</h3>
+    <div class="photo">
+      <div class="ph" id="photoPreview">Passport-size photo</div>
+      <div class="f">
+        <label for="photo">Photo</label>
+        <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png">
+        <label class="mt">Registration No</label><span class="reg">Auto-generated on submit</span>
+      </div>
+    </div>
+
+    <% config.sections.forEach(section => { const title = section[0], content = section[1]; %>
+      <section><h3><%= title %></h3>
+      <% if (content === 'edu') { %>
+        <div id="educationRows"></div>
+        <button type="button" class="link" id="addEducation">+ Add another qualification</button>
+      <% } else if (content === 'ach') { %>
+        <div id="achievementRows"></div>
+        <button type="button" class="link" id="addAchievement">+ Add another achievement</button>
+      <% } else { %>
+        <div class="grid">
+        <% content.forEach(field => { const label=field[0], type=field[1], options=field[2] || [], required=field[3], wide=field[4], special=field[5]; const id='field_'+label.toLowerCase().replace(/[^a-z0-9]+/g,'_'); %>
+          <div class="f <%= wide ? 'w' : '' %>">
+            <label for="<%= id %>"><%= label %><% if(required) { %> <i>*</i><% } %></label>
+            <% if (type === 'sel') { %>
+              <select id="<%= id %>" class="data-field" data-label="<%= label %>" data-special="<%= special || '' %>" <%= required ? 'required' : '' %> <%= special === 'wc' ? 'disabled' : '' %>>
+                <option value=""><%= special === 'wc' ? 'Choose a category first' : 'Select' %></option>
+                <% options.forEach(o => { %><option value="<%= o %>"><%= o %></option><% }) %>
+              </select>
+              <% if (special === 'wc') { %><small class="hint">Select a category to load available weight classes.</small><% } %>
+            <% } else if (type === 'ta') { %>
+              <textarea id="<%= id %>" class="data-field" data-label="<%= label %>" <%= required ? 'required' : '' %>></textarea>
+            <% } else if (type === 'file') { %>
+              <input id="<%= id %>" name="<%= label %>" type="file" accept=".jpg,.jpeg,.png,.pdf" data-file-label="<%= label %>" <%= required ? 'required' : '' %>>
+            <% } else { %>
+              <input id="<%= id %>" class="data-field" data-label="<%= label %>" type="<%= ({t:'text',e:'email',tel:'tel',d:'date',n:'number'})[type] || 'text' %>" <%= type==='tel' ? 'maxlength="10"' : '' %> <%= required ? 'required' : '' %>>
+            <% } %>
+          </div>
+        <% }) %>
+        </div>
+      <% } %>
+      </section>
+    <% }) %>
+
+    <div class="bar">
+      <div class="fee">Registration fee: <b>₹<%= config.fee %></b><p class="hint">Paid online to the official U.P. Boxing Association account.</p></div>
+      <div><button type="reset" class="btn g" id="clearBtn">Clear</button> <button type="submit" class="btn" id="submitBtn">Save & continue to payment</button></div>
+    </div>
+    <div id="formMessage" class="msg hidden" role="alert"></div>
+  </form>
+</div></main>
+<div id="upbaWeights" data-weights="<%= JSON.stringify(weights) %>" hidden></div>
+<script>
+  const upbaWeights = document.getElementById('upbaWeights');
+  window.UPBA = { weights: JSON.parse(upbaWeights?.dataset.weights || '{}') };
+</script>
+<script src="/js/register.js"></script>
+</body></html>

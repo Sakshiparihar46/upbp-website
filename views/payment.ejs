@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>UPBA Payment</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="wrap">
+            <h1>U.P. Boxing Association</h1>
+            <p>Online registration</p>
+        </div>
+    </header>
+    <main>
+        <div class="wrap">
+            <div class="steps"><span>1 Details</span><span class="on">2 Payment</span><span>3 Receipt</span></div>
+            <div class="card">
+                <h2>Payment</h2>
+                <div id="paymentMeta" data-member-id="<%= member.id %>" data-fee="<%= fee %>" hidden></div>
+                <p>Registration No: <span class="reg">
+                        <%= member.reg_no %>
+                    </span></p>
+                <p class="fee">Amount due: <b>₹<%= fee %></b></p><button class="btn" id="payBtn">Pay ₹<%= fee %>
+                        </button>
+                <div id="message" class="msg hidden"></div>
+            </div>
+        </div>
+    </main>
+    <script>
+      const paymentMeta = document.getElementById('paymentMeta');
+      window.PAYMENT = {
+        id: Number(paymentMeta?.dataset.memberId || 0),
+        fee: Number(paymentMeta?.dataset.fee || 0)
+      };
+    </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="/js/payment.js"></script>
+</body>
+
+</html>
