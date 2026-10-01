@@ -5,7 +5,9 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const uploadDirectory = path.resolve(__dirname, '..', 'uploads');
+export const uploadDirectory = process.env.UPLOAD_DIR
+  ? path.resolve(process.env.UPLOAD_DIR)
+  : path.resolve(__dirname, '..', 'uploads');
 fs.mkdirSync(uploadDirectory, { recursive: true });
 
 export const upload = multer({

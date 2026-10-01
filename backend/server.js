@@ -14,6 +14,7 @@ try {
   console.log('✅ MySQL connected');
 } catch (err) {
   console.error('❌ MySQL connection failed:', err.message);
+  process.exit(1);
 }
 
 app.listen(PORT, () => console.log(`API running on port ${PORT}`));
