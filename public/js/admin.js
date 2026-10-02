@@ -1,5 +1,5 @@
 const $ = selector => document.querySelector(selector);
-const adminState = { forms: {}, roles: [], activeRole: '', currentRegistration: null, toastTimer: null };
+const adminState = { forms: {}, roles: [], activeRole: '', currentRegistration: null, currentPayment: null, toastTimer: null };
 const coreLabels = new Set(['Title', 'First Name', 'Last Name', 'Gender', 'Date of Birth', 'Personal Email', 'Mobile Number', 'Address']);
 const fieldTypes = [['t', 'Text'], ['e', 'Email'], ['tel', 'Phone'], ['d', 'Date'], ['n', 'Number'], ['sel', 'Dropdown'], ['ta', 'Long text'], ['file', 'File']];
 
@@ -50,6 +50,14 @@ function formatDateTime(value) {
   return Number.isNaN(date.getTime()) ? String(value) : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
+function toDateTimeLocal(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
 async function loadRegistrations() {
   const query = new URLSearchParams({
     search: $('#registrationSearch').value.trim(),
@@ -81,12 +89,32 @@ async function loadRegistrations() {
     edit.textContent = 'Edit';
     edit.addEventListener('click', () => openRegistration(member.id));
     actionCell.appendChild(edit);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'button danger small';
+    remove.textContent = 'Delete';
+    remove.addEventListener('click', () => deleteRegistration(member));
+    actionCell.appendChild(remove);
+    actionCell.className = 'row-actions';
     tr.appendChild(actionCell);
     body.appendChild(tr);
   }
   $('#metricTotal').textContent = String(rows.length);
   $('#metricPaid').textContent = String(rows.filter(member => member.status === 'paid').length);
   $('#metricPending').textContent = String(rows.filter(member => member.status !== 'paid').length);
+}
+
+async function deleteRegistration(member) {
+  const name = `${member.first_name} ${member.last_name}`.trim();
+  const identifier = member.reg_no || `#${member.id}`;
+  if (!window.confirm(`Delete ${name} (${identifier}) and all associated payment and document records? This cannot be undone.`)) return;
+  try {
+    await request(`/api/admin/registrations/${member.id}`, { method: 'DELETE' });
+    notify('Registration deleted');
+    await Promise.all([loadRegistrations(), loadPayments()]);
+  } catch (error) {
+    notify(error.message, true);
+  }
 }
 
 async function loadPayments() {
@@ -107,7 +135,53 @@ async function loadPayments() {
     cell(tr, payment.receipt_no);
     cell(tr, payment.gateway_ref);
     cell(tr, formatDateTime(payment.paid_at));
+    const actionCell = document.createElement('td');
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'button secondary small';
+    edit.textContent = 'Update';
+    edit.addEventListener('click', () => openPaymentEditor(payment));
+    actionCell.appendChild(edit);
+    tr.appendChild(actionCell);
     body.appendChild(tr);
+  }
+}
+
+function openPaymentEditor(payment) {
+  adminState.currentPayment = payment;
+  $('#paymentDialogTitle').textContent = `${payment.reg_no || `#${payment.id}`} · ${payment.name}`;
+  $('#paymentEditStatus').value = payment.status;
+  $('#paymentEditStatus').disabled = payment.status === 'paid';
+  $('#paymentEditAmount').value = payment.amount ?? '';
+  $('#paymentEditReceipt').value = payment.receipt_no || '';
+  $('#paymentEditGateway').value = payment.gateway_ref || '';
+  $('#paymentEditPaidAt').value = toDateTimeLocal(payment.paid_at);
+  $('#paymentDialog').showModal();
+}
+
+async function savePayment() {
+  const payment = adminState.currentPayment;
+  if (!payment) return;
+  const button = $('#savePayment');
+  button.disabled = true;
+  try {
+    await request(`/api/admin/payments/${payment.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status: $('#paymentEditStatus').value,
+        amount: Number($('#paymentEditAmount').value),
+        receipt_no: $('#paymentEditReceipt').value,
+        gateway_ref: $('#paymentEditGateway').value,
+        paid_at: $('#paymentEditPaidAt').value
+      })
+    });
+    $('#paymentDialog').close();
+    notify('Payment record updated');
+    await Promise.all([loadPayments(), loadRegistrations()]);
+  } catch (error) {
+    notify(error.message, true);
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -480,6 +554,8 @@ $('#formTitle').addEventListener('input', () => { adminState.forms[adminState.ac
 $('#saveForm').addEventListener('click', saveForm);
 $('#saveRegistration').addEventListener('click', saveRegistration);
 $('#cancelEdit').addEventListener('click', () => $('#registrationDialog').close());
+$('#cancelPaymentEdit').addEventListener('click', () => $('#paymentDialog').close());
+$('#savePayment').addEventListener('click', savePayment);
 $('#addEducation').addEventListener('click', () => addEducationRow());
 $('#addAchievement').addEventListener('click', () => addAchievementRow());
 $('#addSection').addEventListener('click', () => {

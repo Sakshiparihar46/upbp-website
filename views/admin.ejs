@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin portal | U.P. Boxing Association</title>
   <link rel="stylesheet" href="/css/admin.css">
   <link rel="stylesheet" href="/css/admin-documents.css">
 </head>
+
 <body class="admin-page">
   <header class="admin-header">
     <a class="brand-mark" href="/admin">UPBA <span>ADMIN</span></a>
@@ -16,7 +19,10 @@
   </header>
   <main class="workspace">
     <div class="page-heading">
-      <div><p class="eyebrow">OPERATIONS / ADMINISTRATION</p><h1>Member desk</h1></div>
+      <div>
+        <p class="eyebrow">OPERATIONS / ADMINISTRATION</p>
+        <h1>Member desk</h1>
+      </div>
       <p class="muted">Registrations, forms and payment records</p>
     </div>
     <section class="metrics" aria-label="Registration summary">
@@ -25,53 +31,160 @@
       <div><span>Awaiting payment</span><strong id="metricPending">—</strong></div>
     </section>
     <nav class="admin-nav" aria-label="Admin sections" role="tablist">
-      <button type="button" class="nav-tab active" data-view="registrations" role="tab" aria-selected="true">Registrations</button>
+      <button type="button" class="nav-tab active" data-view="registrations" role="tab"
+        aria-selected="true">Registrations</button>
       <button type="button" class="nav-tab" data-view="payments" role="tab" aria-selected="false">Payments</button>
       <button type="button" class="nav-tab" data-view="forms" role="tab" aria-selected="false">Form builder</button>
     </nav>
 
     <section class="view" id="view-registrations" role="tabpanel">
-      <div class="view-heading"><div><h2>Submitted registrations</h2><p>Search and edit member details.</p></div>
+      <div class="view-heading">
+        <div>
+          <h2>Submitted registrations</h2>
+          <p>Search and edit member details.</p>
+        </div>
         <div class="filters">
-          <label class="search-box"><span aria-hidden="true">⌕</span><input id="registrationSearch" type="search" placeholder="reg. no." aria-label="Search registrations"></label>
-          <select id="registrationRole" aria-label="Filter by role"><option value="">All roles</option></select>
-          <select id="registrationStatus" aria-label="Filter by payment status"><option value="">All payments</option><option value="paid">Paid</option><option value="pending">Pending</option></select>
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="registrationSearch" type="search"
+              placeholder="reg. no." aria-label="Search registrations"></label>
+          <select id="registrationRole" aria-label="Filter by role">
+            <option value="">All roles</option>
+          </select>
+          <select id="registrationStatus" aria-label="Filter by payment status">
+            <option value="">All payments</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+          </select>
         </div>
       </div>
-      <div class="table-wrap"><table><thead><tr><th>Registration</th><th>Member</th><th>Role</th><th>Mobile</th><th>Payment</th><th>Submitted</th><th></th></tr></thead><tbody id="registrationRows"></tbody></table></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registration</th>
+              <th>Member</th>
+              <th>Role</th>
+              <th>Mobile</th>
+              <th>Payment</th>
+              <th>Submitted</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="registrationRows"></tbody>
+        </table>
+      </div>
       <p class="empty-state" id="registrationEmpty" hidden>No matching registrations.</p>
     </section>
 
     <section class="view" id="view-payments" role="tabpanel" hidden>
-      <div class="view-heading"><div><h2>Payment records</h2><p>Gateway-confirmed status and receipts.</p></div>
+      <div class="view-heading">
+        <div>
+          <h2>Payment records</h2>
+          <p>Gateway-confirmed status and receipts.</p>
+        </div>
         <div class="filters">
-          <label class="search-box"><span aria-hidden="true">⌕</span><input id="paymentSearch" type="search" placeholder="Name or registration no." aria-label="Search payments"></label>
-          <select id="paymentStatus" aria-label="Filter by payment status"><option value="">All payments</option><option value="paid">Paid</option><option value="pending">Pending</option></select>
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="paymentSearch" type="search"
+              placeholder="Name or registration no." aria-label="Search payments"></label>
+          <select id="paymentStatus" aria-label="Filter by payment status">
+            <option value="">All payments</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+          </select>
         </div>
       </div>
-      <div class="table-wrap"><table><thead><tr><th>Registration</th><th>Member</th><th>Role</th><th>Status</th><th>Amount</th><th>Receipt</th><th>Gateway reference</th><th>Paid at</th></tr></thead><tbody id="paymentRows"></tbody></table></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Registration</th>
+              <th>Member</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Amount</th>
+              <th>Receipt</th>
+              <th>Gateway reference</th>
+              <th>Paid at</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="paymentRows"></tbody>
+        </table>
+      </div>
       <p class="empty-state" id="paymentEmpty" hidden>No matching payment records.</p>
     </section>
 
     <section class="view" id="view-forms" role="tabpanel" hidden>
-      <div class="view-heading"><div><h2>Registration form builder</h2><p>Changes apply to new submissions; saved registrations stay unchanged.</p></div>
-        <div class="form-actions"><select id="formRole" aria-label="Choose registration form"></select><button type="button" class="button primary" id="saveForm">Save form</button></div>
+      <div class="view-heading">
+        <div>
+          <h2>Registration form builder</h2>
+          <p>Changes apply to new submissions; saved registrations stay unchanged.</p>
+        </div>
+        <div class="form-actions"><select id="formRole" aria-label="Choose registration form"></select><button
+            type="button" class="button primary" id="saveForm">Save form</button></div>
       </div>
       <div class="builder-title"><label for="formTitle">Page title</label><input id="formTitle" maxlength="100"></div>
       <div id="formSections" class="form-sections"></div>
-      <div class="builder-footer"><button type="button" class="button secondary" id="addSection">+ Add section</button><span class="muted">Identity fields and payment status are protected.</span></div>
+      <div class="builder-footer"><button type="button" class="button secondary" id="addSection">+ Add
+          section</button><span class="muted">Identity fields and payment status are protected.</span></div>
     </section>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </main>
 
   <dialog id="registrationDialog" class="edit-dialog">
-    <form method="dialog" class="dialog-top"><div><p class="eyebrow">REGISTRATION RECORD</p><h2 id="dialogTitle">Edit registration</h2></div><button class="icon-button" aria-label="Close editor">×</button></form>
+    <form method="dialog" class="dialog-top">
+      <div>
+        <p class="eyebrow">REGISTRATION RECORD</p>
+        <h2 id="dialogTitle">Edit registration</h2>
+      </div><button class="icon-button" aria-label="Close editor">×</button>
+    </form>
     <div id="registrationFields" class="edit-fields"></div>
-    <section class="edit-list"><div class="list-heading"><h3>Submitted documents</h3></div><div id="documentsEditor" class="documents-editor"></div></section>
-    <section class="edit-list" id="educationSection"><div class="list-heading"><h3>Education</h3><button type="button" class="button secondary small" id="addEducation">Add row</button></div><div id="educationEditor"></div></section>
-    <section class="edit-list" id="achievementSection"><div class="list-heading"><h3>Achievements</h3><button type="button" class="button secondary small" id="addAchievement">Add row</button></div><div id="achievementEditor"></div></section>
-    <div class="dialog-actions"><span id="dialogNotice" class="muted"></span><button type="button" class="button secondary" id="cancelEdit">Cancel</button><button type="button" class="button primary" id="saveRegistration">Save changes</button></div>
+    <section class="edit-list">
+      <div class="list-heading">
+        <h3>Submitted documents</h3>
+      </div>
+      <div id="documentsEditor" class="documents-editor"></div>
+    </section>
+    <section class="edit-list" id="educationSection">
+      <div class="list-heading">
+        <h3>Education</h3><button type="button" class="button secondary small" id="addEducation">Add row</button>
+      </div>
+      <div id="educationEditor"></div>
+    </section>
+    <section class="edit-list" id="achievementSection">
+      <div class="list-heading">
+        <h3>Achievements</h3><button type="button" class="button secondary small" id="addAchievement">Add row</button>
+      </div>
+      <div id="achievementEditor"></div>
+    </section>
+    <div class="dialog-actions"><span id="dialogNotice" class="muted"></span><button type="button"
+        class="button secondary" id="cancelEdit">Cancel</button><button type="button" class="button primary"
+        id="saveRegistration">Save changes</button></div>
+  </dialog>
+  <dialog id="paymentDialog" class="edit-dialog">
+    <form method="dialog" class="dialog-top">
+      <div>
+        <p class="eyebrow">PAYMENT RECORD</p>
+        <h2 id="paymentDialogTitle">Update payment</h2>
+      </div><button class="icon-button" aria-label="Close payment editor">×</button>
+    </form>
+    <div class="edit-fields">
+      <div class="edit-field"><label for="paymentEditStatus">Status</label><select id="paymentEditStatus">
+          <option value="pending">Pending</option>
+          <option value="paid">Paid</option>
+        </select></div>
+      <div class="edit-field"><label for="paymentEditAmount">Amount (INR)</label><input id="paymentEditAmount"
+          type="number" min="1" step="1"></div>
+      <div class="edit-field"><label for="paymentEditReceipt">Receipt number</label><input id="paymentEditReceipt"
+          maxlength="30"></div>
+      <div class="edit-field"><label for="paymentEditGateway">Gateway reference</label><input id="paymentEditGateway"
+          maxlength="80"></div>
+      <div class="edit-field"><label for="paymentEditPaidAt">Paid at</label><input id="paymentEditPaidAt"
+          type="datetime-local"></div>
+    </div>
+    <div class="dialog-actions"><span class="muted">Paid registrations cannot be reverted to pending.</span><button
+        type="button" class="button secondary" id="cancelPaymentEdit">Cancel</button><button type="button"
+        class="button primary" id="savePayment">Save payment</button></div>
   </dialog>
   <script src="/js/admin.js" defer></script>
 </body>
+
 </html>

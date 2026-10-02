@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { MemberModel } from '../models/memberModel.js';
 import { DocumentModel } from '../models/documentModel.js';
+import { PaymentModel } from '../models/paymentModel.js';
 import { FormConfigModel } from '../models/formConfigModel.js';
 import { ROLES as ROLE_META, CORE_COLUMNS } from '../config/constants.js';
 import { ROLES as DEFAULT_FORMS } from '../config/formConfig.js';
@@ -27,6 +28,26 @@ export async function listRegistrations(req, res) {
   res.json(await MemberModel.adminList({ search, role, status }));
 }
 
+export async function deleteRegistration(req, res) {
+  const memberId = Number(req.params.id);
+  if (!Number.isSafeInteger(memberId) || memberId < 1) throw httpError(400, 'Invalid registration');
+  const storedNames = await MemberModel.adminDelete(memberId);
+  if (!storedNames) throw httpError(404, 'Registration not found');
+
+  for (const storedName of storedNames) {
+    const filename = path.basename(storedName);
+    if (!filename || filename !== storedName) continue;
+    const filePath = path.resolve(uploadDirectory, filename);
+    if (path.dirname(filePath) !== uploadDirectory) continue;
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      if (error.code !== 'ENOENT') console.error('Could not remove registration upload:', error.message);
+    }
+  }
+  res.json({ success: true });
+}
+
 export async function listPayments(req, res) {
   const status = String(req.query.status || '');
   const search = String(req.query.search || '').trim().slice(0, 120);
@@ -43,6 +64,39 @@ export async function listPayments(req, res) {
     gateway_ref: row.gateway_ref,
     paid_at: row.paid_at
   })));
+}
+
+export async function updatePayment(req, res) {
+  const memberId = Number(req.params.memberId);
+  const { status, amount, receipt_no: receiptNo, gateway_ref: gatewayRef, paid_at: paidAtInput } = req.body || {};
+  if (!Number.isSafeInteger(memberId) || memberId < 1) throw httpError(400, 'Invalid registration');
+  if (!['pending', 'paid'].includes(status)) throw httpError(400, 'Invalid payment status');
+
+  let payment = {};
+  if (status === 'paid') {
+    if (!Number.isSafeInteger(amount) || amount < 1 || amount > 2147483647) throw httpError(400, 'Enter a valid payment amount');
+    if (typeof receiptNo !== 'string' || !receiptNo.trim() || receiptNo.trim().length > 30) throw httpError(400, 'Enter a receipt number of 30 characters or fewer');
+    if (gatewayRef !== undefined && (typeof gatewayRef !== 'string' || gatewayRef.length > 80)) throw httpError(400, 'Gateway reference must be 80 characters or fewer');
+    if (paidAtInput && (typeof paidAtInput !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(paidAtInput) || Number.isNaN(new Date(paidAtInput).getTime()))) {
+      throw httpError(400, 'Enter a valid payment date and time');
+    }
+    payment = {
+      amount,
+      receiptNo: receiptNo.trim(),
+      gatewayRef: gatewayRef?.trim() || '',
+      paidAt: paidAtInput ? `${paidAtInput.replace('T', ' ')}:00` : null
+    };
+  }
+
+  try {
+    const updated = await PaymentModel.adminUpdate(memberId, { status, ...payment });
+    if (!updated) throw httpError(404, 'Registration not found');
+  } catch (error) {
+    if (error.code === 'PAYMENT_STATUS_CONFLICT') throw httpError(409, error.message);
+    if (error.code === 'ER_DUP_ENTRY') throw httpError(409, 'That receipt number is already in use');
+    throw error;
+  }
+  res.json({ success: true });
 }
 
 function dateInput(value) {

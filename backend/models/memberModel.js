@@ -87,6 +87,41 @@ export const MemberModel = {
     };
   },
 
+  async adminDelete(id) {
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+      const [[member]] = await conn.query('SELECT id,photo FROM members WHERE id=? FOR UPDATE', [id]);
+      if (!member) {
+        await conn.rollback();
+        return null;
+      }
+      const [documents] = await conn.query('SELECT stored_name FROM registration_documents WHERE member_id=? FOR UPDATE', [id]);
+      const storedNames = [...new Set([member.photo, ...documents.map(document => document.stored_name)].filter(Boolean))];
+      await conn.query('DELETE FROM payments WHERE member_id=?', [id]);
+      await conn.query('DELETE FROM members WHERE id=?', [id]);
+
+      let remainingNames = [];
+      if (storedNames.length) {
+        const placeholders = storedNames.map(() => '?').join(',');
+        const [references] = await conn.query(
+          `SELECT stored_name FROM registration_documents WHERE stored_name IN (${placeholders})
+           UNION SELECT photo AS stored_name FROM members WHERE photo IN (${placeholders})`,
+          [...storedNames, ...storedNames]
+        );
+        remainingNames = references.map(row => row.stored_name);
+      }
+
+      await conn.commit();
+      return storedNames.filter(name => !remainingNames.includes(name));
+    } catch (error) {
+      await conn.rollback();
+      throw error;
+    } finally {
+      conn.release();
+    }
+  },
+
   async updateAdmin(id, { fields, education, achievements, documents = [] }) {
     const conn = await db.getConnection();
     try {

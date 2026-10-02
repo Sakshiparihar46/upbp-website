@@ -366,6 +366,23 @@ tbody tr:hover {
     background: #f7f9f6
 }
 
+.button.danger {
+    background: #fff;
+    border-color: #e8b5b8;
+    color: #a8323a
+}
+
+.button.danger:hover {
+    border-color: #d78388;
+    background: #fff4f4
+}
+
+.row-actions {
+    display: flex;
+    gap: 6px;
+    white-space: nowrap
+}
+
 .button.quiet {
     background: transparent;
     border-color: #627181;
