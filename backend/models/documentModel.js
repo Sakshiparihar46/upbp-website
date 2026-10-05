@@ -38,8 +38,7 @@ export const DocumentModel = {
       review_note VARCHAR(500),
       reviewed_at TIMESTAMP NULL DEFAULT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY member_document_label (member_id, field_label),
-      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+      UNIQUE KEY member_document_label (member_id, field_label)
     )`);
     const [members] = await db.query('SELECT id,photo,data FROM members');
     for (const member of members) {

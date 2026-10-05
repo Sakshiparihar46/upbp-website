@@ -54,26 +54,5 @@ CREATE TABLE IF NOT EXISTS registration_documents (
   review_note VARCHAR(500),
   reviewed_at TIMESTAMP NULL DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY member_document_label (member_id, field_label),
-  FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
-);
-
-DROP TABLE IF EXISTS registration_documents;
-
-DROP TABLE IF EXISTS registration_documents;
-
-CREATE TABLE IF NOT EXISTS registration_documents (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  member_id INT NOT NULL,
-  field_label VARCHAR(120) NOT NULL,
-  stored_name VARCHAR(255) NOT NULL,
-  original_name VARCHAR(255) NOT NULL,
-  mime_type VARCHAR(100) NOT NULL,
-  size_bytes INT UNSIGNED NOT NULL DEFAULT 0,
-  review_status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
-  review_note VARCHAR(500),
-  reviewed_at TIMESTAMP NULL DEFAULT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY member_document_label (member_id, field_label),
-  FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+  UNIQUE KEY member_document_label (member_id, field_label)
 );

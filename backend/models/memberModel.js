@@ -99,6 +99,7 @@ export const MemberModel = {
       const [documents] = await conn.query('SELECT stored_name FROM registration_documents WHERE member_id=? FOR UPDATE', [id]);
       const storedNames = [...new Set([member.photo, ...documents.map(document => document.stored_name)].filter(Boolean))];
       await conn.query('DELETE FROM payments WHERE member_id=?', [id]);
+      await conn.query('DELETE FROM registration_documents WHERE member_id=?', [id]);
       await conn.query('DELETE FROM members WHERE id=?', [id]);
 
       let remainingNames = [];
