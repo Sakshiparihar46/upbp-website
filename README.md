@@ -27,7 +27,7 @@ Education and achievements are submitted as arrays and stored in their own SQL t
 
 Use a Node.js host that supports a long-running Express process and a MySQL database. Set the service root directory to `backend`, install with `npm install`, and use `npm start` as the start command. Use Node.js 20 or newer.
 
-Create a MySQL database and import `schema.sql` before the first deployment. Configure these environment variables in the hosting provider (do not commit real credentials):
+Create an empty MySQL database and configure its connection variables in the hosting provider. On startup, the app creates any missing application tables automatically; the database user must have permission to create tables. `backend/schema.sql` is also available for manual setup. Configure these environment variables in the hosting provider (do not commit real credentials):
 
 - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`
 - `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET` (at least 32 characters)
