@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS form_configs (
 
 CREATE TABLE IF NOT EXISTS registration_documents (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  member_id INT NOT NULL,
+  member_id VARCHAR 50 NOT NULL,
   field_label VARCHAR(120) NOT NULL,
   stored_name VARCHAR(255) NOT NULL,
   original_name VARCHAR(255) NOT NULL,
