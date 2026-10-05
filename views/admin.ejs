@@ -23,7 +23,7 @@
         <p class="eyebrow">OPERATIONS / ADMINISTRATION</p>
         <h1>Member desk</h1>
       </div>
-      <p class="muted">Registrations, forms and payment records</p>
+      <p class="muted">Registrations and payment records</p>
     </div>
     <section class="metrics" aria-label="Registration summary">
       <div><span>Total shown</span><strong id="metricTotal">—</strong></div>
@@ -34,7 +34,6 @@
       <button type="button" class="nav-tab active" data-view="registrations" role="tab"
         aria-selected="true">Registrations</button>
       <button type="button" class="nav-tab" data-view="payments" role="tab" aria-selected="false">Payments</button>
-      <button type="button" class="nav-tab" data-view="forms" role="tab" aria-selected="false">Form builder</button>
     </nav>
 
     <section class="view" id="view-registrations" role="tabpanel">
@@ -112,20 +111,6 @@
       <p class="empty-state" id="paymentEmpty" hidden>No matching payment records.</p>
     </section>
 
-    <section class="view" id="view-forms" role="tabpanel" hidden>
-      <div class="view-heading">
-        <div>
-          <h2>Registration form builder</h2>
-          <p>Changes apply to new submissions; saved registrations stay unchanged.</p>
-        </div>
-        <div class="form-actions"><select id="formRole" aria-label="Choose registration form"></select><button
-            type="button" class="button primary" id="saveForm">Save form</button></div>
-      </div>
-      <div class="builder-title"><label for="formTitle">Page title</label><input id="formTitle" maxlength="100"></div>
-      <div id="formSections" class="form-sections"></div>
-      <div class="builder-footer"><button type="button" class="button secondary" id="addSection">+ Add
-          section</button><span class="muted">Identity fields and payment status are protected.</span></div>
-    </section>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </main>
 

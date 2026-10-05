@@ -1,7 +1,5 @@
 const $ = selector => document.querySelector(selector);
-const adminState = { forms: {}, roles: [], activeRole: '', currentRegistration: null, currentPayment: null, toastTimer: null };
-const coreLabels = new Set(['Title', 'First Name', 'Last Name', 'Gender', 'Date of Birth', 'Personal Email', 'Mobile Number', 'Address']);
-const fieldTypes = [['t', 'Text'], ['e', 'Email'], ['tel', 'Phone'], ['d', 'Date'], ['n', 'Number'], ['sel', 'Dropdown'], ['ta', 'Long text'], ['file', 'File']];
+const adminState = { currentRegistration: null, currentPayment: null, toastTimer: null };
 
 async function request(path, options = {}) {
   const isFormData = options.body instanceof FormData;
@@ -380,150 +378,10 @@ function selectOptions(select, options, value) {
   select.value = value;
 }
 
-function renderFormBuilder() {
-  const config = adminState.forms[adminState.activeRole];
-  if (!config) return;
-  $('#formTitle').value = config.title;
-  const container = $('#formSections');
-  container.replaceChildren();
-  config.sections.forEach((section, sectionIndex) => {
-    const sectionNode = document.createElement('article');
-    sectionNode.className = 'section-editor';
-    const heading = document.createElement('div');
-    heading.className = 'section-heading';
-    const title = document.createElement('input');
-    title.className = 'section-title';
-    title.value = section[0];
-    title.setAttribute('aria-label', 'Section title');
-    title.addEventListener('input', () => { section[0] = title.value; });
-    heading.appendChild(title);
-    const isSpecialSection = typeof section[1] === 'string';
-    const kind = document.createElement('span');
-    kind.className = 'section-kind';
-    kind.textContent = isSpecialSection ? (section[1] === 'edu' ? 'Education rows' : 'Achievement rows') : 'Form fields';
-    heading.appendChild(kind);
-    const actions = document.createElement('div');
-    actions.className = 'section-actions';
-    const removeSection = document.createElement('button');
-    removeSection.type = 'button';
-    removeSection.className = 'button secondary small';
-    removeSection.textContent = 'Remove';
-    removeSection.disabled = isSpecialSection;
-    removeSection.addEventListener('click', () => {
-      config.sections.splice(sectionIndex, 1);
-      renderFormBuilder();
-    });
-    actions.appendChild(removeSection);
-    heading.appendChild(actions);
-    sectionNode.appendChild(heading);
-
-    if (!isSpecialSection) {
-      const fieldList = document.createElement('div');
-      fieldList.className = 'field-list';
-      section[1].forEach((field, fieldIndex) => fieldList.appendChild(renderField(config, sectionIndex, fieldIndex, field)));
-      const add = document.createElement('button');
-      add.type = 'button';
-      add.className = 'button secondary small';
-      add.textContent = '+ Add field';
-      add.addEventListener('click', () => {
-        section[1].push(['New field', 't', [], false, false, '']);
-        renderFormBuilder();
-      });
-      fieldList.appendChild(add);
-      sectionNode.appendChild(fieldList);
-    } else {
-      const note = document.createElement('p');
-      note.className = 'special-note';
-      note.textContent = 'This structured section is retained for existing applicant data.';
-      sectionNode.appendChild(note);
-    }
-    container.appendChild(sectionNode);
-  });
-}
-
-function renderField(config, sectionIndex, fieldIndex, field) {
-  const row = document.createElement('div');
-  row.className = 'field-editor';
-  const label = document.createElement('input');
-  label.className = 'label-input';
-  label.value = field[0];
-  label.setAttribute('aria-label', 'Field label');
-  label.disabled = coreLabels.has(field[0]);
-  label.addEventListener('input', () => { field[0] = label.value; });
-  row.appendChild(label);
-
-  const type = document.createElement('select');
-  type.setAttribute('aria-label', 'Field type');
-  selectOptions(type, fieldTypes, field[1]);
-  type.disabled = Boolean(field[5]);
-  type.addEventListener('change', () => {
-    field[1] = type.value;
-    if (field[1] !== 'sel') field[2] = [];
-    renderFormBuilder();
-  });
-  row.appendChild(type);
-
-  const options = document.createElement('input');
-  options.className = 'options-input';
-  options.placeholder = field[1] === 'sel' ? 'Option 1, Option 2' : 'No options';
-  options.value = (field[2] || []).join(', ');
-  options.disabled = field[1] !== 'sel' || Boolean(field[5]);
-  options.setAttribute('aria-label', 'Dropdown options, comma separated');
-  options.addEventListener('input', () => { field[2] = options.value.split(',').map(item => item.trim()).filter(Boolean); });
-  row.appendChild(options);
-
-  for (const [index, labelText] of [[3, 'Required'], [4, 'Wide']]) {
-    const wrapper = document.createElement('label');
-    wrapper.className = 'check-field';
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = Boolean(field[index]);
-    checkbox.setAttribute('aria-label', labelText);
-    checkbox.addEventListener('change', () => { field[index] = checkbox.checked; });
-    wrapper.append(checkbox, document.createTextNode(labelText));
-    row.appendChild(wrapper);
-  }
-
-  const remove = document.createElement('button');
-  remove.type = 'button';
-  remove.className = 'remove-field';
-  remove.textContent = '×';
-  remove.setAttribute('aria-label', `Remove ${field[0]}`);
-  remove.disabled = coreLabels.has(field[0]) || Boolean(field[5]);
-  remove.addEventListener('click', () => {
-    config.sections[sectionIndex][1].splice(fieldIndex, 1);
-    renderFormBuilder();
-  });
-  row.appendChild(remove);
-  return row;
-}
-
-async function loadForms() {
-  adminState.forms = await request('/api/admin/forms');
-  adminState.roles = Object.keys(adminState.forms);
-  const roleOptions = adminState.roles.map(role => [role, role]);
+async function loadRegistrationRoles() {
+  const forms = await request('/api/admin/forms');
+  const roleOptions = Object.keys(forms).map(role => [role, role]);
   selectOptions($('#registrationRole'), [['', 'All roles'], ...roleOptions], $('#registrationRole').value);
-  selectOptions($('#formRole'), roleOptions, adminState.activeRole || adminState.roles[0]);
-  adminState.activeRole = $('#formRole').value;
-  renderFormBuilder();
-}
-
-async function saveForm() {
-  const config = adminState.forms[adminState.activeRole];
-  config.title = $('#formTitle').value.trim();
-  const button = $('#saveForm');
-  button.disabled = true;
-  try {
-    await request(`/api/admin/forms/${encodeURIComponent(adminState.activeRole)}`, {
-      method: 'PUT', body: JSON.stringify({ title: config.title, sections: config.sections })
-    });
-    notify('Form saved for future registrations');
-    await loadForms();
-  } catch (error) {
-    notify(error.message, true);
-  } finally {
-    button.disabled = false;
-  }
 }
 
 function setView(viewName) {
@@ -549,24 +407,17 @@ $('#registrationRole').addEventListener('change', () => loadRegistrations().catc
 $('#registrationStatus').addEventListener('change', () => loadRegistrations().catch(error => notify(error.message, true)));
 $('#paymentSearch').addEventListener('input', debounce(loadPayments));
 $('#paymentStatus').addEventListener('change', () => loadPayments().catch(error => notify(error.message, true)));
-$('#formRole').addEventListener('change', () => { adminState.activeRole = $('#formRole').value; renderFormBuilder(); });
-$('#formTitle').addEventListener('input', () => { adminState.forms[adminState.activeRole].title = $('#formTitle').value; });
-$('#saveForm').addEventListener('click', saveForm);
 $('#saveRegistration').addEventListener('click', saveRegistration);
 $('#cancelEdit').addEventListener('click', () => $('#registrationDialog').close());
 $('#cancelPaymentEdit').addEventListener('click', () => $('#paymentDialog').close());
 $('#savePayment').addEventListener('click', savePayment);
 $('#addEducation').addEventListener('click', () => addEducationRow());
 $('#addAchievement').addEventListener('click', () => addAchievementRow());
-$('#addSection').addEventListener('click', () => {
-  adminState.forms[adminState.activeRole].sections.push(['New section', []]);
-  renderFormBuilder();
-});
 document.querySelectorAll('.nav-tab').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
 
 (async function initialize() {
   try {
-    await loadForms();
+    await loadRegistrationRoles();
     await Promise.all([loadRegistrations(), loadPayments()]);
   } catch (error) {
     notify(error.message, true);
