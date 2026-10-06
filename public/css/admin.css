@@ -187,6 +187,47 @@ button {
     padding-top: 23px
 }
 
+.gateway-settings {
+    display: grid;
+    grid-template-columns: minmax(220px, .8fr) minmax(280px, 1.2fr);
+    gap: 24px;
+    padding: 20px;
+    margin-bottom: 26px;
+    border: 1px solid var(--admin-line);
+    border-radius: 5px;
+    background: var(--admin-paper)
+}
+
+.gateway-settings h2 {
+    margin: 4px 0;
+    font: 700 22px Georgia, serif
+}
+
+.gateway-settings p {
+    margin: 8px 0 0
+}
+
+.gateway-form {
+    display: grid;
+    gap: 8px
+}
+
+.gateway-form label {
+    font-size: 12px;
+    font-weight: 700
+}
+
+.gateway-form input {
+    width: 100%
+}
+
+.gateway-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px
+}
+
 .view-heading {
     display: flex;
     justify-content: space-between;
@@ -630,6 +671,10 @@ tbody tr:hover {
 }
 
 @media(max-width:760px) {
+    .gateway-settings {
+        grid-template-columns: 1fr
+    }
+
     .admin-header {
         height: 62px;
         padding: 0 16px

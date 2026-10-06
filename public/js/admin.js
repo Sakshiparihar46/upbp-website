@@ -145,6 +145,99 @@ async function loadPayments() {
   }
 }
 
+async function loadRazorpaySettings() {
+  const settings = await request('/api/admin/payments/razorpay');
+  const status = $('#razorpaySettingsStatus');
+  const clearButton = $('#clearRazorpaySettings');
+  $('#razorpayKeyId').value = settings.key_id || '';
+  $('#razorpayKeySecret').value = '';
+  clearButton.hidden = !['admin', 'environment'].includes(settings.source);
+  clearButton.textContent = settings.source === 'environment' ? 'Disable Razorpay payments' : 'Remove saved account';
+  if (settings.source === 'admin') {
+    status.textContent = `Admin account connected (${settings.key_id}). The saved secret is hidden.`;
+  } else if (settings.source === 'environment') {
+    status.textContent = `Using the server-configured account (${settings.key_id}). Save here to replace it.`;
+  } else if (settings.source === 'disabled') {
+    status.textContent = 'Razorpay payments are disabled, including server environment credentials. Save an account below to enable payments again.';
+  } else {
+    status.textContent = 'No Razorpay account configured. Add the Key ID and Key Secret below to enable payments.';
+  }
+}
+
+async function loadAdminAccount() {
+  const account = await request('/api/admin/account');
+  $('#adminUsername').value = account.username;
+  $('#adminCurrentPassword').value = '';
+  $('#adminNewPassword').value = '';
+  $('#adminConfirmPassword').value = '';
+}
+
+async function saveAdminAccount(event) {
+  event.preventDefault();
+  const form = $('#adminAccountForm');
+  if (!form.reportValidity()) return;
+  if ($('#adminNewPassword').value !== $('#adminConfirmPassword').value) {
+    notify('New passwords do not match', true);
+    return;
+  }
+  const button = $('#saveAdminAccount');
+  button.disabled = true;
+  try {
+    await request('/api/admin/account', {
+      method: 'PUT',
+      body: JSON.stringify({
+        username: $('#adminUsername').value,
+        current_password: $('#adminCurrentPassword').value,
+        password: $('#adminNewPassword').value,
+        confirm_password: $('#adminConfirmPassword').value
+      })
+    });
+    window.location.href = '/admin/login?updated=1';
+  } catch (error) {
+    notify(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function saveRazorpaySettings(event) {
+  event.preventDefault();
+  const form = $('#razorpaySettingsForm');
+  if (!form.reportValidity()) return;
+  const button = $('#saveRazorpaySettings');
+  button.disabled = true;
+  try {
+    await request('/api/admin/payments/razorpay', {
+      method: 'PUT',
+      body: JSON.stringify({
+        key_id: $('#razorpayKeyId').value,
+        key_secret: $('#razorpayKeySecret').value
+      })
+    });
+    notify('Razorpay credentials saved securely');
+    await loadRazorpaySettings();
+  } catch (error) {
+    notify(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function clearRazorpaySettings() {
+  if (!window.confirm('Disable Razorpay payments and remove saved credentials? This also prevents fallback to any Razorpay keys configured on the server.')) return;
+  const button = $('#clearRazorpaySettings');
+  button.disabled = true;
+  try {
+    await request('/api/admin/payments/razorpay', { method: 'DELETE' });
+    notify('Razorpay payments disabled and saved credentials removed');
+    await loadRazorpaySettings();
+  } catch (error) {
+    notify(error.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function openPaymentEditor(payment) {
   adminState.currentPayment = payment;
   $('#paymentDialogTitle').textContent = `${payment.reg_no || `#${payment.id}`} · ${payment.name}`;
@@ -391,7 +484,11 @@ function setView(viewName) {
     button.setAttribute('aria-selected', String(selected));
   });
   document.querySelectorAll('.view').forEach(section => { section.hidden = section.id !== `view-${viewName}`; });
-  if (viewName === 'payments') loadPayments().catch(error => notify(error.message, true));
+  if (viewName === 'payments') {
+    loadPayments().catch(error => notify(error.message, true));
+    loadRazorpaySettings().catch(error => notify(error.message, true));
+  }
+  if (viewName === 'account') loadAdminAccount().catch(error => notify(error.message, true));
 }
 
 function debounce(fn, delay = 250) {
@@ -411,6 +508,9 @@ $('#saveRegistration').addEventListener('click', saveRegistration);
 $('#cancelEdit').addEventListener('click', () => $('#registrationDialog').close());
 $('#cancelPaymentEdit').addEventListener('click', () => $('#paymentDialog').close());
 $('#savePayment').addEventListener('click', savePayment);
+$('#razorpaySettingsForm').addEventListener('submit', saveRazorpaySettings);
+$('#clearRazorpaySettings').addEventListener('click', clearRazorpaySettings);
+$('#adminAccountForm').addEventListener('submit', saveAdminAccount);
 $('#addEducation').addEventListener('click', () => addEducationRow());
 $('#addAchievement').addEventListener('click', () => addAchievementRow());
 document.querySelectorAll('.nav-tab').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));

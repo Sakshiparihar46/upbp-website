@@ -1,18 +1,21 @@
 import { Router } from 'express';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { login, logout, requireAdmin } from '../middleware/adminAuth.js';
+import { login, logout, requireAdmin, loginPage, setupAdmin } from '../middleware/adminAuth.js';
 import { upload } from '../middleware/upload.js';
-import { adminPage, loginPage, listRegistrations, deleteRegistration, listPayments, updatePayment, registrationDetails, updateRegistration, documentContent, reviewDocument, listForms, saveForm } from '../controllers/adminController.js';
+import { adminPage, listRegistrations, deleteRegistration, listPayments, updatePayment, registrationDetails, updateRegistration, documentContent, reviewDocument, listForms, saveForm, getRazorpaySettings, saveRazorpaySettings, clearRazorpaySettings, getAdminAccount, updateAdminAccount } from '../controllers/adminController.js';
 
 export const adminPageRoutes = Router();
-adminPageRoutes.get('/login', loginPage);
-adminPageRoutes.post('/login', login);
+adminPageRoutes.get('/login', asyncHandler(loginPage));
+adminPageRoutes.post('/login', asyncHandler(login));
+adminPageRoutes.post('/setup', asyncHandler(setupAdmin));
 adminPageRoutes.use(requireAdmin);
 adminPageRoutes.get('/', adminPage);
 adminPageRoutes.post('/logout', logout);
 
 export const adminApiRoutes = Router();
 adminApiRoutes.use(requireAdmin);
+adminApiRoutes.get('/account', asyncHandler(getAdminAccount));
+adminApiRoutes.put('/account', asyncHandler(updateAdminAccount));
 adminApiRoutes.get('/registrations', asyncHandler(listRegistrations));
 adminApiRoutes.delete('/registrations/:id', asyncHandler(deleteRegistration));
 adminApiRoutes.get('/registrations/:id', asyncHandler(registrationDetails));
@@ -20,6 +23,9 @@ adminApiRoutes.put('/registrations/:id', upload.any(), asyncHandler(updateRegist
 adminApiRoutes.get('/documents/:documentId/content', asyncHandler(documentContent));
 adminApiRoutes.patch('/registrations/:id/documents/:documentId', asyncHandler(reviewDocument));
 adminApiRoutes.get('/payments', asyncHandler(listPayments));
+adminApiRoutes.get('/payments/razorpay', asyncHandler(getRazorpaySettings));
+adminApiRoutes.put('/payments/razorpay', asyncHandler(saveRazorpaySettings));
+adminApiRoutes.delete('/payments/razorpay', asyncHandler(clearRazorpaySettings));
 adminApiRoutes.patch('/payments/:memberId', asyncHandler(updatePayment));
 adminApiRoutes.get('/forms', asyncHandler(listForms));
 adminApiRoutes.put('/forms/:role', asyncHandler(saveForm));

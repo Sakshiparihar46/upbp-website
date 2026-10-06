@@ -4,16 +4,14 @@ import { MemberModel } from '../models/memberModel.js';
 import { DocumentModel } from '../models/documentModel.js';
 import { PaymentModel } from '../models/paymentModel.js';
 import { FormConfigModel } from '../models/formConfigModel.js';
+import { RazorpayConfigModel } from '../models/razorpayConfigModel.js';
+import { AdminAccountModel } from '../models/adminAccountModel.js';
 import { ROLES as ROLE_META, CORE_COLUMNS } from '../config/constants.js';
 import { ROLES as DEFAULT_FORMS } from '../config/formConfig.js';
 import { uploadDirectory } from '../middleware/upload.js';
 import { httpError } from '../middleware/errorHandler.js';
 
 const FIELD_TYPES = new Set(['t', 'e', 'tel', 'd', 'n', 'sel', 'ta', 'file']);
-
-export function loginPage(req, res) {
-  res.render('admin-login', { error: null });
-}
 
 export function adminPage(req, res) {
   res.render('admin');
@@ -64,6 +62,69 @@ export async function listPayments(req, res) {
     gateway_ref: row.gateway_ref,
     paid_at: row.paid_at
   })));
+}
+
+export async function getRazorpaySettings(req, res) {
+  const saved = await RazorpayConfigModel.getSaved();
+  const environmentConfigured = Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+  if (saved?.disabled) {
+    return res.json({ configured: false, source: 'disabled', key_id: '' });
+  }
+  res.json({
+    configured: Boolean(saved || environmentConfigured),
+    source: saved ? 'admin' : environmentConfigured ? 'environment' : 'none',
+    key_id: saved?.keyId || (environmentConfigured ? process.env.RAZORPAY_KEY_ID : '')
+  });
+}
+
+export async function saveRazorpaySettings(req, res) {
+  const { key_id: keyIdInput, key_secret: keySecret } = req.body || {};
+  const keyId = typeof keyIdInput === 'string' ? keyIdInput.trim() : '';
+  if (!/^rzp_(test|live)_[A-Za-z0-9]+$/.test(keyId)) {
+    throw httpError(400, 'Enter a valid Razorpay Key ID (rzp_test_... or rzp_live_...).');
+  }
+  if (typeof keySecret !== 'string' || keySecret.length < 8 || keySecret.length > 255 || /\s/.test(keySecret)) {
+    throw httpError(400, 'Enter a valid Razorpay Key Secret.');
+  }
+  await RazorpayConfigModel.save({ keyId, keySecret });
+  res.json({ success: true });
+}
+
+export async function clearRazorpaySettings(req, res) {
+  await RazorpayConfigModel.clear();
+  res.json({ success: true });
+}
+
+export async function getAdminAccount(req, res) {
+  res.json({ username: req.adminAccount.username });
+}
+
+export async function updateAdminAccount(req, res) {
+  const { current_password: currentPassword, username: usernameInput, password, confirm_password: confirmPassword } = req.body || {};
+  const username = typeof usernameInput === 'string' ? usernameInput.trim() : '';
+  if (!/^[a-zA-Z0-9._-]{3,50}$/.test(username)) {
+    throw httpError(400, 'Username must be 3–50 letters, numbers, dots, dashes or underscores.');
+  }
+  if (typeof currentPassword !== 'string' || !currentPassword) {
+    throw httpError(400, 'Enter your current password to confirm this change.');
+  }
+  if (typeof password !== 'string' || password.length < 12 || password.length > 128 || password !== confirmPassword) {
+    throw httpError(400, 'New passwords must match and be 12–128 characters long.');
+  }
+
+  try {
+    const updated = await AdminAccountModel.changeCredentials({
+      account: req.adminAccount,
+      currentPassword,
+      username,
+      password
+    });
+    if (!updated) throw httpError(401, 'Current password is incorrect, or credentials changed in another session.');
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') throw httpError(409, 'That admin username is already in use.');
+    throw error;
+  }
+  res.json({ success: true });
 }
 
 export async function updatePayment(req, res) {

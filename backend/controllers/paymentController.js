@@ -2,20 +2,19 @@ import crypto from 'node:crypto';
 import Razorpay from 'razorpay';
 import { MemberModel } from '../models/memberModel.js';
 import { PaymentModel } from '../models/paymentModel.js';
+import { RazorpayConfigModel } from '../models/razorpayConfigModel.js';
 import { ROLES } from '../config/constants.js';
 import { httpError } from '../middleware/errorHandler.js';
 
-function getRazorpay() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-  if (!keyId || !keySecret) {
-    throw httpError(503, 'Razorpay is not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to backend/.env');
-  }
+async function getRazorpay() {
+  const credentials = await RazorpayConfigModel.getCredentials();
+  if (!credentials) throw httpError(503, 'Razorpay is not configured. Ask an admin to add credentials in Admin → Payments.');
+  const { keyId, keySecret } = credentials;
   return { client: new Razorpay({ key_id: keyId, key_secret: keySecret }), keyId, keySecret };
 }
 
 export async function createOrder(req, res) {
-  const { client, keyId } = getRazorpay();
+  const { client, keyId } = await getRazorpay();
   const member = await MemberModel.findById(req.params.memberId);
   if (!member) throw httpError(404, 'Member not found');
   if (member.status === 'paid') throw httpError(409, 'Already paid');
@@ -40,7 +39,7 @@ export async function createOrder(req, res) {
 }
 
 export async function verifyPayment(req, res) {
-  const { client, keySecret } = getRazorpay();
+  const { client, keySecret } = await getRazorpay();
   const { razorpay_order_id: orderId, razorpay_payment_id: paymentId, razorpay_signature: signature } = req.body;
   if (!orderId || !paymentId || !signature) throw httpError(400, 'Incomplete payment details');
 

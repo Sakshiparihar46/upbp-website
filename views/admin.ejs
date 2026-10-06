@@ -34,6 +34,7 @@
       <button type="button" class="nav-tab active" data-view="registrations" role="tab"
         aria-selected="true">Registrations</button>
       <button type="button" class="nav-tab" data-view="payments" role="tab" aria-selected="false">Payments</button>
+      <button type="button" class="nav-tab" data-view="account" role="tab" aria-selected="false">Admin account</button>
     </nav>
 
     <section class="view" id="view-registrations" role="tabpanel">
@@ -75,6 +76,26 @@
     </section>
 
     <section class="view" id="view-payments" role="tabpanel" hidden>
+      <section class="gateway-settings" aria-labelledby="gatewaySettingsTitle">
+        <div>
+          <p class="eyebrow">PAYMENT GATEWAY</p>
+          <h2 id="gatewaySettingsTitle">Razorpay account</h2>
+          <p class="muted" id="razorpaySettingsStatus" role="status">Checking payment gateway settings…</p>
+        </div>
+        <form id="razorpaySettingsForm" class="gateway-form">
+          <label for="razorpayKeyId">Key ID</label>
+          <input id="razorpayKeyId" name="key_id" type="text" autocomplete="off" required maxlength="100"
+            placeholder="rzp_test_…">
+          <label for="razorpayKeySecret">Key Secret</label>
+          <input id="razorpayKeySecret" name="key_secret" type="password" autocomplete="new-password" required
+            minlength="8" maxlength="255" placeholder="Enter your Razorpay Key Secret">
+          <div class="gateway-actions">
+            <button class="button primary" id="saveRazorpaySettings" type="submit">Save credentials</button>
+            <button class="button danger" id="clearRazorpaySettings" type="button" hidden>Remove saved account</button>
+          </div>
+          <p class="muted">The secret is encrypted in storage and never shown again. Keep ADMIN_SESSION_SECRET stable; re-save credentials if you rotate it. Use Razorpay test keys before going live.</p>
+        </form>
+      </section>
       <div class="view-heading">
         <div>
           <h2>Payment records</h2>
@@ -109,6 +130,33 @@
         </table>
       </div>
       <p class="empty-state" id="paymentEmpty" hidden>No matching payment records.</p>
+    </section>
+
+    <section class="view" id="view-account" role="tabpanel" hidden>
+      <section class="gateway-settings" aria-labelledby="adminAccountTitle">
+        <div>
+          <p class="eyebrow">ACCOUNT SECURITY</p>
+          <h2 id="adminAccountTitle">Admin login credentials</h2>
+          <p class="muted">Changing your login signs out all active admin sessions.</p>
+        </div>
+        <form id="adminAccountForm" class="gateway-form">
+          <label for="adminUsername">Admin username</label>
+          <input id="adminUsername" name="username" autocomplete="username" minlength="3" maxlength="50"
+            pattern="[A-Za-z0-9._-]+" required>
+          <label for="adminCurrentPassword">Current password</label>
+          <input id="adminCurrentPassword" name="current_password" type="password" autocomplete="current-password"
+            required>
+          <label for="adminNewPassword">New password (at least 12 characters)</label>
+          <input id="adminNewPassword" name="password" type="password" autocomplete="new-password" minlength="12"
+            maxlength="128" required>
+          <label for="adminConfirmPassword">Confirm new password</label>
+          <input id="adminConfirmPassword" name="confirm_password" type="password" autocomplete="new-password"
+            minlength="12" maxlength="128" required>
+          <div class="gateway-actions">
+            <button class="button primary" id="saveAdminAccount" type="submit">Update admin login</button>
+          </div>
+        </form>
+      </section>
     </section>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
